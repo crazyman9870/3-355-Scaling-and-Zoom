@@ -2,6 +2,7 @@ package cs355.controller;
 
 import java.awt.Color;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.ArrayList;
@@ -273,12 +274,18 @@ public class Controller implements CS355Controller {
 
 	@Override
 	public void zoomInButtonHit() {
-		zoom = zoom * 2;
+		if(zoom < 2.0) {
+			zoom = zoom * 2;
+			GUIFunctions.refresh();
+		}
 	}
 
 	@Override
 	public void zoomOutButtonHit() {
-		zoom = zoom/2;
+		if(zoom > 0.25) {
+			zoom = zoom/2;
+			GUIFunctions.refresh();
+		}
 	}
 	
 	public void switchStates(Mode m) {
@@ -752,6 +759,36 @@ public class Controller implements CS355Controller {
 	public void doChangeBrightness(int brightnessAmountNum) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	/* Transforms */
+
+	public AffineTransform object_world_view(Shape s) {
+		AffineTransform transform = new AffineTransform();
+
+		// World to View
+        transform.concatenate(new AffineTransform(zoom, 0, 0, zoom, 0, 0)); //scale
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -256 + 256*(1/zoom), -256 + 256*(1/zoom))); //t
+
+		// Object to World
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, s.getCenter().getX(), s.getCenter().getY()));
+		transform.concatenate(new AffineTransform(Math.cos(s.getRotation()), Math.sin(s.getRotation()), -Math.sin(s.getRotation()), Math.cos(s.getRotation()), 0, 0));
+		
+		return transform;
+	}
+	
+	public AffineTransform view_world_object(Shape s) {
+		AffineTransform transform = new AffineTransform();
+
+		// World to object
+		transform.concatenate(new AffineTransform(Math.cos(s.getRotation()), -Math.sin(s.getRotation()), Math.sin(s.getRotation()), Math.cos(s.getRotation()), 0.0, 0.0));
+		transform.concatenate(new AffineTransform(1.0, 0.0, 0.0, 1.0, -s.getCenter().getX(), -s.getCenter().getY()));
+		
+		// View to world
+        transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -(-256 + 256*(1/zoom)), -(-256 + 256*(1/zoom)))); //t
+        transform.concatenate(new AffineTransform(1/zoom, 0, 0, 1/zoom, 0, 0)); //scale
+		
+		return transform;
 	}
 
 }

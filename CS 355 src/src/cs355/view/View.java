@@ -3,7 +3,6 @@ package cs355.view;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Polygon;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -12,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Observable;
 
 import cs355.GUIFunctions;
+import cs355.controller.Controller;
 import cs355.model.drawing.*;
 
 public class View implements ViewRefresher {
@@ -30,12 +30,9 @@ public class View implements ViewRefresher {
 			
 			//Sets the color for the graphics object
 			g2d.setColor(currentShape.getColor());
-			
-			AffineTransform objToWorld = new AffineTransform();
-			// translate, rotate and then sets the transform 
-			objToWorld.translate(currentShape.getCenter().getX(), currentShape.getCenter().getY());
-			objToWorld.rotate(currentShape.getRotation());
-			g2d.setTransform(objToWorld);
+
+			// changes the coordinates from object->world->view
+			g2d.setTransform(Controller.instance().object_world_view(currentShape));
 			//Draw the object
 			g2d.fill(shapeFactory(currentShape, g2d, false)); //Uses the factory to determine the current shape to set the fill.
 			g2d.draw(shapeFactory(currentShape, g2d, selectedShapeIndex == i)); //Uses the factory to determine the current shape to draw the image

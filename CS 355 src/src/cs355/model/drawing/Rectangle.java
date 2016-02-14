@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
+import cs355.controller.Controller;
+
 /**
  * Add your rectangle code here. You can add fields, but you cannot
  * change the ones that already exist. This includes the names!
@@ -76,10 +78,10 @@ public class Rectangle extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		AffineTransform worldToObj = new AffineTransform();
-		worldToObj.rotate(-rotation);
-		worldToObj.translate(-center.getX(), -center.getY());
-		worldToObj.transform(pt, pt);
+//		AffineTransform worldToObj = new AffineTransform();
+//		worldToObj.rotate(-rotation);
+//		worldToObj.translate(-center.getX(), -center.getY());
+//		worldToObj.transform(pt, pt);
 		
 		double boundryX = width/2;
 		double boundryY = height/2;
