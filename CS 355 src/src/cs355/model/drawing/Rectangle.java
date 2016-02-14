@@ -1,10 +1,7 @@
 package cs355.model.drawing;
 
 import java.awt.Color;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
-
-import cs355.controller.Controller;
 
 /**
  * Add your rectangle code here. You can add fields, but you cannot
@@ -77,16 +74,11 @@ public class Rectangle extends Shape {
 	 *		   false otherwise.
 	 */
 	@Override
-	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-//		AffineTransform worldToObj = new AffineTransform();
-//		worldToObj.rotate(-rotation);
-//		worldToObj.translate(-center.getX(), -center.getY());
-//		worldToObj.transform(pt, pt);
-		
+	public boolean pointInShape(Point2D.Double pt, double tolerance) {		
 		double boundryX = width/2;
 		double boundryY = height/2;
-		if(((-boundryX<=pt.getX() && pt.getX()<=boundryX) && (-boundryY<=pt.getY() && pt.getY()<=boundryY)))
-			System.out.println("Rectangle Selected");
+//		if(((-boundryX<=pt.getX() && pt.getX()<=boundryX) && (-boundryY<=pt.getY() && pt.getY()<=boundryY)))
+//			System.out.println("Rectangle Selected");
 		return ((-boundryX<=pt.getX() && pt.getX()<=boundryX) && (-boundryY<=pt.getY() && pt.getY()<=boundryY));
 	}
 

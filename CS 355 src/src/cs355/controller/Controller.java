@@ -274,7 +274,7 @@ public class Controller implements CS355Controller {
 
 	@Override
 	public void zoomInButtonHit() {
-		if(zoom < 2.0) {
+		if(zoom < 4.0) {
 			zoom = zoom * 2;
 			GUIFunctions.refresh();
 		}
@@ -540,12 +540,12 @@ public class Controller implements CS355Controller {
 	
 	
 	public void handleLineTransformation(MouseEvent arg0) {
-		//TODO
+
 		Line line = (Line) Model.instance().getShape(currentShapeIndex);
-		if(line.pointNearCenter(new Point2D.Double(arg0.getX(), arg0.getY()), 10)) {
+		if(line.pointNearCenter(new Point2D.Double(arg0.getX(), arg0.getY()), 20)) {
 			line.setCenter(new Point2D.Double(arg0.getX(), arg0.getY()));
 		}
-		else if(line.pointNearEnd(new Point2D.Double(arg0.getX(), arg0.getY()), 10)) {
+		else if(line.pointNearEnd(new Point2D.Double(arg0.getX(), arg0.getY()), 20)) {
 			line.setEnd(new Point2D.Double(arg0.getX(), arg0.getY()));
 		}
 		else {
@@ -562,8 +562,6 @@ public class Controller implements CS355Controller {
 			double endXdelta = line.getEnd().getX() - trueCenterX;
 			double centerYdelta = line.getCenter().getY() - trueCenterY;
 			double endYdelta = line.getEnd().getY() - trueCenterY;
-			
-
 			
 			line.setCenter(new Point2D.Double(mouseDragStart.x + changeX + centerXdelta, mouseDragStart.y + changeY + centerYdelta));
 			line.setEnd(new Point2D.Double(mouseDragStart.x + changeX + endXdelta, mouseDragStart.y + changeY + endYdelta));

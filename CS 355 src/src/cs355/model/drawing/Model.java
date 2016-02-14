@@ -64,8 +64,10 @@ public class Model extends CS355Drawing {
 		for(int i = shapes.size() - 1; i >= 0; i--) {
 			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
 			Shape s = shapes.get(i);
-			AffineTransform viewToObject = Controller.instance().view_world_object(s);
-			viewToObject.transform(ptCopy, ptCopy);
+			if(s.getShapeType() != Shape.type.LINE) {
+				AffineTransform viewToObject = Controller.instance().view_world_object(s);
+				viewToObject.transform(ptCopy, ptCopy);
+			}
 			if(s.pointInShape(ptCopy, tolerance)) {
 				selectedShapeIndex = i;
 				selectedColor = s.getColor();

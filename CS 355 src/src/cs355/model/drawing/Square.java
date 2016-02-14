@@ -1,7 +1,6 @@
 package cs355.model.drawing;
 
 import java.awt.Color;
-import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 
 /**
@@ -55,15 +54,10 @@ public class Square extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
-		AffineTransform worldToObj = new AffineTransform();
-		worldToObj.rotate(-rotation);
-		worldToObj.translate(-center.getX(), -center.getY());
-		worldToObj.transform(pt, pt);
-		
 		double boundry = size/2;
 		boolean squareSelected = ((-boundry<=pt.getX() && pt.getX()<=boundry) && (-boundry<=pt.getY() && pt.getY()<=boundry));
-		if(squareSelected)
-			System.out.println("Square Selected");
+//		if(squareSelected)
+//			System.out.println("Square Selected");
 		return (squareSelected);
 	}
 
