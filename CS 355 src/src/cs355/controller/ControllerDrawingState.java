@@ -1,6 +1,7 @@
 package cs355.controller;
 
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
@@ -16,12 +17,10 @@ import cs355.model.drawing.Triangle;
 
 public class ControllerDrawingState implements IControllerState {
 
-	private double zoom;
 	private Point2D.Double mouseDragStart;
 	private ArrayList<Point2D> triangleCoordinates;
 	
-	public ControllerDrawingState(double zoom) {
-		this.zoom = zoom;
+	public ControllerDrawingState() {
 		this.mouseDragStart = null;
 		this.triangleCoordinates = new ArrayList<>();
 	}
@@ -30,6 +29,8 @@ public class ControllerDrawingState implements IControllerState {
 	public void mousePressed(MouseEvent arg0) {
 		if(Model.instance().getCurrentShape() == Shape.type.TRIANGLE) {
 			Point2D.Double point = new Point2D.Double(arg0.getX(), arg0.getY());
+			AffineTransform viewToWorld = Controller.instance().viewToWorld();
+			viewToWorld.transform(point, point);
 			this.triangleCoordinates.add(point);
 			
 			if (this.triangleCoordinates.size() == 3) 
@@ -48,25 +49,30 @@ public class ControllerDrawingState implements IControllerState {
 			}
 		}
 		else {
+			this.mouseDragStart = new Point2D.Double(arg0.getX(), arg0.getY());
+			AffineTransform viewToWorld = Controller.instance().viewToWorld();
+			viewToWorld.transform(this.mouseDragStart, this.mouseDragStart);
 			switch(Model.instance().getCurrentShape()) {
 			case LINE:
-				Model.instance().addShape(new Line(Model.instance().getColor(), new Point2D.Double(arg0.getX(), arg0.getY()), new Point2D.Double(arg0.getX(), arg0.getY())));
+				Model.instance().addShape(new Line(Model.instance().getColor(),
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY()),
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY())));
 				break;
 			case SQUARE: 
-				Model.instance().addShape(new Square(Model.instance().getColor(), new Point2D.Double(arg0.getX(), arg0.getY()), 0));
-				this.mouseDragStart = new Point2D.Double(arg0.getX(), arg0.getY());
+				Model.instance().addShape(new Square(Model.instance().getColor(),
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY()), 0));
 				break;
 			case RECTANGLE: 
-				Model.instance().addShape(new Rectangle(Model.instance().getColor(), new Point2D.Double(arg0.getX(), arg0.getY()),0, 0));
-				this.mouseDragStart = new Point2D.Double(arg0.getX(), arg0.getY());
+				Model.instance().addShape(new Rectangle(Model.instance().getColor(), 
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY()),0, 0));
 				break;
 			case CIRCLE: 
-				Model.instance().addShape(new Circle(Model.instance().getColor(), new Point2D.Double(arg0.getX(), arg0.getY()),0));
-				this.mouseDragStart = new Point2D.Double(arg0.getX(), arg0.getY());
+				Model.instance().addShape(new Circle(Model.instance().getColor(),
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY()),0));
 				break;
 			case ELLIPSE: 
-				Model.instance().addShape(new Ellipse(Model.instance().getColor(), new Point2D.Double(arg0.getX(), arg0.getY()),0, 0));
-				this.mouseDragStart = new Point2D.Double(arg0.getX(), arg0.getY());
+				Model.instance().addShape(new Ellipse(Model.instance().getColor(),
+						new Point2D.Double(this.mouseDragStart.getX(), this.mouseDragStart.getY()),0, 0));
 				break;
 			default:
 				break;
@@ -84,22 +90,24 @@ public class ControllerDrawingState implements IControllerState {
 	public void mouseDragged(MouseEvent arg0) {
 		if(Model.instance().getCurrentShape() != Shape.type.TRIANGLE) {
 			Shape currentShape = Model.instance().getLastShape();
-			
+			Point2D.Double movingPoint = new Point2D.Double(arg0.getX(), arg0.getY());
+			AffineTransform viewToWorld = Controller.instance().viewToWorld();
+			viewToWorld.transform(movingPoint, movingPoint);
 			switch(currentShape.getShapeType()) {
 			case LINE:
-				handleActiveLine(arg0);
+				handleActiveLine(movingPoint);
 				break;
 			case SQUARE:
-				handleActiveSquare(arg0);
+				handleActiveSquare(movingPoint);
 				break;
 			case RECTANGLE:
-				handleActiveRectangle(arg0);
+				handleActiveRectangle(movingPoint);
 				break;
 			case CIRCLE:
-				handleActiveCircle(arg0);
+				handleActiveCircle(movingPoint);
 				break;
 			case ELLIPSE:
-				handleActiveEllipse(arg0);
+				handleActiveEllipse(movingPoint);
 				break;
 			case TRIANGLE:
 				break;
@@ -119,25 +127,25 @@ public class ControllerDrawingState implements IControllerState {
 	
 	/* Shape Handlers */
 	
-	private void handleActiveLine(MouseEvent arg0) {
+	private void handleActiveLine(Point2D.Double pt) {
 		
 		Line line = (Line) Model.instance().getLastShape();
-		line.setEnd(new Point2D.Double(arg0.getX(), arg0.getY()));
+		line.setEnd(new Point2D.Double(pt.getX(), pt.getY()));
 		
 		Model.instance().setLastShape(line);
 	}
 	
-	private void handleActiveSquare(MouseEvent arg0)	{
+	private void handleActiveSquare(Point2D.Double pt)	{
 		
 		Square square = (Square) Model.instance().getLastShape();
 		//if the cursor is moving below the upper left corner
-		if(arg0.getY() > mouseDragStart.y)
+		if(pt.getY() > mouseDragStart.y)
 		{
 			//if the cursor is moving to the bottom right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = pt.getY() - mouseDragStart.y;
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				square.setCenter(new Point2D.Double(mouseDragStart.x + newcorner/2, mouseDragStart.y + newcorner/2));
@@ -145,10 +153,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the bottom left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = pt.getY() - mouseDragStart.y;
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				square.setCenter(new Point2D.Double(mouseDragStart.x - newcorner/2, mouseDragStart.y + newcorner/2));
@@ -157,13 +165,13 @@ public class ControllerDrawingState implements IControllerState {
 		}
 
 		//if the cursor is moving above the upper left corner
-		if(arg0.getY() < mouseDragStart.y)
+		if(pt.getY() < mouseDragStart.y)
 		{
 			//if the cursor is moving to the upper right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = mouseDragStart.y - pt.getY();
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				//change to set center of some sort 
@@ -172,10 +180,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the upper left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = mouseDragStart.y - pt.getY();
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				square.setCenter(new Point2D.Double(mouseDragStart.x - newcorner/2, mouseDragStart.y - newcorner/2));
@@ -185,17 +193,17 @@ public class ControllerDrawingState implements IControllerState {
 		Model.instance().setLastShape(square);
 	}
 	
-	private void handleActiveRectangle(MouseEvent arg0) {
+	private void handleActiveRectangle(Point2D.Double pt) {
 		
 		Rectangle rectangle = (Rectangle) Model.instance().getLastShape();
 		//if the cursor is moving below the upper left corner
-		if(arg0.getY() > mouseDragStart.y)
+		if(pt.getY() > mouseDragStart.y)
 		{
 			//if the cursor is moving to the bottom right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = pt.getY() - mouseDragStart.y;
 				
 				rectangle.setCenter(new Point2D.Double(mouseDragStart.x + lengthX/2, mouseDragStart.y + lengthY/2));
 				rectangle.setHeight(lengthY);
@@ -203,10 +211,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the bottom left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = pt.getY() - mouseDragStart.y;
 				
 				rectangle.setCenter(new Point2D.Double(mouseDragStart.x - lengthX/2, mouseDragStart.y + lengthY/2));
 				rectangle.setHeight(lengthY);
@@ -215,13 +223,13 @@ public class ControllerDrawingState implements IControllerState {
 		}
 
 		//if the cursor is moving above the upper left corner
-		if(arg0.getY() < mouseDragStart.y)
+		if(pt.getY() < mouseDragStart.y)
 		{
 			//if the cursor is moving to the upper right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = mouseDragStart.y - pt.getY();
 				
 				rectangle.setCenter(new Point2D.Double(mouseDragStart.x + lengthX/2, mouseDragStart.y  - lengthY/2));
 				rectangle.setHeight(lengthY);
@@ -229,10 +237,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the upper left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = mouseDragStart.y - pt.getY();
 				
 				rectangle.setCenter(new Point2D.Double(mouseDragStart.x - lengthX/2, mouseDragStart.y - lengthY/2));
 				rectangle.setHeight(lengthY);
@@ -242,17 +250,17 @@ public class ControllerDrawingState implements IControllerState {
 		Model.instance().setLastShape(rectangle);
 	}
 	
-	private void handleActiveCircle(MouseEvent arg0) {
+	private void handleActiveCircle(Point2D.Double pt) {
 		
 		Circle circle = (Circle) Model.instance().getLastShape();
 		//if the cursor is moving below the upper left corner
-		if(arg0.getY() > mouseDragStart.y)
+		if(pt.getY() > mouseDragStart.y)
 		{
 			//if the cursor is moving to the bottom right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = pt.getY() - mouseDragStart.y;
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				circle.setCenter(new Point2D.Double(mouseDragStart.x + newcorner/2, mouseDragStart.y + newcorner/2));
@@ -260,10 +268,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the bottom left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = pt.getY() - mouseDragStart.y;
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				circle.setCenter(new Point2D.Double(mouseDragStart.x - newcorner/2, mouseDragStart.y + newcorner/2));
@@ -272,13 +280,13 @@ public class ControllerDrawingState implements IControllerState {
 		}
 
 		//if the cursor is moving above the upper left corner
-		if(arg0.getY() < mouseDragStart.y)
+		if(pt.getY() < mouseDragStart.y)
 		{
 			//if the cursor is moving to the upper right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = mouseDragStart.y - pt.getY();
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				circle.setCenter(new Point2D.Double(mouseDragStart.x + newcorner/2, mouseDragStart.y  - newcorner/2));
@@ -286,10 +294,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the upper left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = mouseDragStart.y - pt.getY();
 				double newcorner = Math.min(lengthX, lengthY);
 				
 				circle.setCenter(new Point2D.Double(mouseDragStart.x - newcorner/2, mouseDragStart.y - newcorner/2));
@@ -299,17 +307,17 @@ public class ControllerDrawingState implements IControllerState {
 		Model.instance().setLastShape(circle);
 	}
 	
-	private void handleActiveEllipse(MouseEvent arg0) {
+	private void handleActiveEllipse(Point2D.Double pt) {
 		
 		Ellipse ellipse = (Ellipse) Model.instance().getLastShape();
 		//if the cursor is moving below the upper left corner
-		if(arg0.getY() > mouseDragStart.y)
+		if(pt.getY() > mouseDragStart.y)
 		{
 			//if the cursor is moving to the bottom right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = pt.getY() - mouseDragStart.y;
 				
 				ellipse.setCenter(new Point2D.Double(mouseDragStart.x + lengthX/2, mouseDragStart.y + lengthY/2));
 				ellipse.setWidth(lengthX);
@@ -317,10 +325,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the bottom left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = arg0.getY() - mouseDragStart.y;
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = pt.getY() - mouseDragStart.y;
 				
 				ellipse.setCenter(new Point2D.Double(mouseDragStart.x - lengthX/2, mouseDragStart.y + lengthY/2));
 				ellipse.setWidth(lengthX);
@@ -329,13 +337,13 @@ public class ControllerDrawingState implements IControllerState {
 		}
 
 		//if the cursor is moving above the upper left corner
-		if(arg0.getY() < mouseDragStart.y)
+		if(pt.getY() < mouseDragStart.y)
 		{
 			//if the cursor is moving to the upper right quad
-			if(arg0.getX() > mouseDragStart.x)
+			if(pt.getX() > mouseDragStart.x)
 			{
-				double lengthX = arg0.getX() - mouseDragStart.x;
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = pt.getX() - mouseDragStart.x;
+				double lengthY = mouseDragStart.y - pt.getY();
 				
 				ellipse.setCenter(new Point2D.Double(mouseDragStart.x + lengthX/2, mouseDragStart.y  - lengthY/2));
 				ellipse.setWidth(lengthX);
@@ -343,10 +351,10 @@ public class ControllerDrawingState implements IControllerState {
 			}
 
 			//if the cursor is moving to the upper left quad
-			if(arg0.getX() < mouseDragStart.x)
+			if(pt.getX() < mouseDragStart.x)
 			{
-				double lengthX = mouseDragStart.x - arg0.getX();
-				double lengthY = mouseDragStart.y - arg0.getY();
+				double lengthX = mouseDragStart.x - pt.getX();
+				double lengthY = mouseDragStart.y - pt.getY();
 				
 				ellipse.setCenter(new Point2D.Double(mouseDragStart.x - lengthX/2, mouseDragStart.y - lengthY/2));
 				ellipse.setWidth(lengthX);
@@ -355,4 +363,5 @@ public class ControllerDrawingState implements IControllerState {
 		}
 		Model.instance().setLastShape(ellipse);
 	}
+
 }

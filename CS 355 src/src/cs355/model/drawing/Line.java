@@ -60,7 +60,7 @@ public class Line extends Shape {
 		double y1 = center.getY();
 		double x2 = end.getX();
 		double y2 = end.getY();
-
+		
 		double slope = (y1-y2)/(x2-x1);
 		double tangentSlope = -1/slope;
 		double degree = Math.atan(tangentSlope);
@@ -68,8 +68,9 @@ public class Line extends Shape {
 		y0 += Math.sin(degree);
 		x0 += Math.cos(degree);
 		
-		if(x0 <= (Math.max(x1, x2)+tolerance) && x0 >= (Math.min(x1, x2)-tolerance) && y0 <= (Math.max(y1, y2)+tolerance) && y0 >= (Math.min(y1, y2)-tolerance)) {
-			System.out.println("Line Selected");
+		if(x0 <= (Math.max(x1, x2)+tolerance) && x0 >= (Math.min(x1, x2)-tolerance)
+				&& y0 <= (Math.max(y1, y2)+tolerance) && y0 >= (Math.min(y1, y2)-tolerance)) {
+//			System.out.println("Line Selected");
 			return true;
 		}
 		return false;

@@ -62,11 +62,18 @@ public class Model extends CS355Drawing {
 	
 	public int selectShape(Point2D.Double pt, double tolerance) {
 		for(int i = shapes.size() - 1; i >= 0; i--) {
-			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
 			Shape s = shapes.get(i);
+			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
+
 			if(s.getShapeType() != Shape.type.LINE) {
-				AffineTransform viewToObject = Controller.instance().view_world_object(s);
+				// changes the coordinates from view->world->object
+				AffineTransform viewToObject = Controller.instance().viewToObject(s);
 				viewToObject.transform(ptCopy, ptCopy);
+			}
+			else {
+				// changes the coordinates from view->world
+				AffineTransform viewToWorld = Controller.instance().viewToWorld();
+				viewToWorld.transform(ptCopy, ptCopy);
 			}
 			if(s.pointInShape(ptCopy, tolerance)) {
 				selectedShapeIndex = i;
@@ -108,10 +115,9 @@ public class Model extends CS355Drawing {
 		if(height!=-1)
 		{
 			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
-			AffineTransform worldToObj = new AffineTransform();
-			worldToObj.rotate(-shape.getRotation());
-			worldToObj.translate(-shape.getCenter().getX(),-shape.getCenter().getY());
-			worldToObj.transform(ptCopy, ptCopy);
+			// changes the coordinates from view->world->object
+			AffineTransform viewToObj = Controller.instance().viewToObject(shape);
+			viewToObj.transform(ptCopy, ptCopy);
 			double yDiff = ptCopy.getY()+((height/2) + 9);
 			
 			double distance = Math.sqrt(Math.pow(ptCopy.getX(), 2) + Math.pow(yDiff, 2));
@@ -120,10 +126,9 @@ public class Model extends CS355Drawing {
 		if(shape.getShapeType().equals(Shape.type.TRIANGLE))
 		{
 			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
-			AffineTransform worldToObj = new AffineTransform();
-			worldToObj.rotate(-shape.getRotation());
-			worldToObj.translate(-shape.getCenter().getX(),-shape.getCenter().getY());
-			worldToObj.transform(ptCopy, ptCopy); //transform pt to object coordinates
+			// changes the coordinates from view->world->object
+			AffineTransform viewToObj = Controller.instance().viewToObject(shape);
+			viewToObj.transform(ptCopy, ptCopy); //transform pt to object coordinates
 			
 			Triangle triangle = (Triangle)shape;
 			double ax = triangle.getA().getX()-triangle.getCenter().getX();

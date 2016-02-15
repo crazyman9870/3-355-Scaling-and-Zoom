@@ -3,9 +3,7 @@ package cs355.controller;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Iterator;
 
 import cs355.GUIFunctions;
@@ -17,8 +15,6 @@ public class Controller implements CS355Controller {
 	private static Controller _instance;
 	
 	private double zoom;
-	private boolean rotating;
-	private Point2D.Double mouseDragStart;
 	IControllerState state;
 
 	//If the model had not been initialized, it will be.
@@ -30,8 +26,6 @@ public class Controller implements CS355Controller {
 	
 	private Controller() {
 		this.zoom = 1.0;
-		this.rotating = false;
-		this.mouseDragStart = null;
 		this.state = new ControllerNothingState();
 	}
 	
@@ -39,6 +33,14 @@ public class Controller implements CS355Controller {
 		return ((coord1 + coord2 + coord3) / 3);
 	}
 
+	public double getZoom() {
+		return zoom;
+	}
+
+	public void setZoom(double zoom) {
+		this.zoom = zoom;
+	}
+	
 	/* Mouse Events */
 
 	@Override
@@ -91,48 +93,49 @@ public class Controller implements CS355Controller {
 	@Override
 	public void lineButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.LINE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void squareButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.SQUARE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void rectangleButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.RECTANGLE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void circleButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.CIRCLE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void ellipseButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.ELLIPSE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void triangleButtonHit() {
 		Model.instance().setCurrentShape(Shape.type.TRIANGLE);
-		this.state = new ControllerDrawingState(zoom);
+		this.state = new ControllerDrawingState();
 	}
 	
 	@Override
 	public void selectButtonHit() {
-		this.state = new ControllerSelectState(zoom);
+		this.state = new ControllerSelectState();
 	}
 
 	@Override
 	public void zoomInButtonHit() {
 		if(zoom < 4.0) {
 			zoom = zoom * 2;
+			GUIFunctions.setZoomText(zoom);
 			GUIFunctions.refresh();
 		}
 	}
@@ -141,6 +144,7 @@ public class Controller implements CS355Controller {
 	public void zoomOutButtonHit() {
 		if(zoom > 0.25) {
 			zoom = zoom/2;
+			GUIFunctions.setZoomText(zoom);
 			GUIFunctions.refresh();
 		}
 	}
@@ -313,33 +317,58 @@ public class Controller implements CS355Controller {
 	}
 	
 	/* Transforms */
-
-	public AffineTransform object_world_view(Shape s) {
+	
+	public AffineTransform objectToWorld(Shape shape) {
 		AffineTransform transform = new AffineTransform();
-
-		// World to View
-        transform.concatenate(new AffineTransform(zoom, 0, 0, zoom, 0, 0)); //scale
-		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -256 + 256*(1/zoom), -256 + 256*(1/zoom))); //t
-
-		// Object to World
-		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, s.getCenter().getX(), s.getCenter().getY()));
-		transform.concatenate(new AffineTransform(Math.cos(s.getRotation()), Math.sin(s.getRotation()), -Math.sin(s.getRotation()), Math.cos(s.getRotation()), 0, 0));
-		
+		//Translation
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, shape.getCenter().getX(), shape.getCenter().getY()));
+		//Rotation
+		transform.concatenate(new AffineTransform(Math.cos(shape.getRotation()), Math.sin(shape.getRotation()), -Math.sin(shape.getRotation()), Math.cos(shape.getRotation()), 0, 0));
 		return transform;
 	}
 	
-	public AffineTransform view_world_object(Shape s) {
+	public AffineTransform worldToView() {
 		AffineTransform transform = new AffineTransform();
-
-		// World to object
-		transform.concatenate(new AffineTransform(Math.cos(s.getRotation()), -Math.sin(s.getRotation()), Math.sin(s.getRotation()), Math.cos(s.getRotation()), 0.0, 0.0));
-		transform.concatenate(new AffineTransform(1.0, 0.0, 0.0, 1.0, -s.getCenter().getX(), -s.getCenter().getY()));
-		
-		// View to world
-        transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -(-256 + 256*(1/zoom)), -(-256 + 256*(1/zoom)))); //t
-        transform.concatenate(new AffineTransform(1/zoom, 0, 0, 1/zoom, 0, 0)); //scale
-		
+		//Scale
+        transform.concatenate(new AffineTransform(zoom, 0, 0, zoom, 0, 0));
+        //Translation
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -256 + 256*(1/zoom), -256 + 256*(1/zoom)));
 		return transform;
 	}
 
+	public AffineTransform objectToView(Shape shape) {
+		AffineTransform transform = new AffineTransform();
+		// World to View
+        transform.concatenate(worldToView());
+		// Object to World
+		transform.concatenate(objectToWorld(shape));
+		return transform;
+	}
+	
+	public AffineTransform viewToWorld() {
+		AffineTransform transform = new AffineTransform();
+		//Translation
+        transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -(-256 + 256*(1/zoom)), -(-256 + 256*(1/zoom))));
+        //Scale
+        transform.concatenate(new AffineTransform(1/zoom, 0, 0, 1/zoom, 0, 0)); 
+		return transform;
+	}
+	
+	public AffineTransform worldToObject(Shape shape) {
+		AffineTransform transform = new AffineTransform();
+		//Rotation
+		transform.concatenate(new AffineTransform(Math.cos(shape.getRotation()), -Math.sin(shape.getRotation()), Math.sin(shape.getRotation()), Math.cos(shape.getRotation()), 0.0, 0.0));
+		//Translation
+		transform.concatenate(new AffineTransform(1.0, 0.0, 0.0, 1.0, -shape.getCenter().getX(), -shape.getCenter().getY()));
+		return transform;
+	}
+	
+	public AffineTransform viewToObject(Shape shape) {
+		AffineTransform transform = new AffineTransform();
+		// World to object
+		transform.concatenate(worldToObject(shape));
+		// View to world
+        transform.concatenate(viewToWorld());
+		return transform;
+	}
 }

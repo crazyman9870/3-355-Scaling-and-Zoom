@@ -32,7 +32,7 @@ public class View implements ViewRefresher {
 			g2d.setColor(currentShape.getColor());
 
 			// changes the coordinates from object->world->view
-			g2d.setTransform(Controller.instance().object_world_view(currentShape));
+			g2d.setTransform(Controller.instance().objectToView(currentShape));
 			//Draw the object
 			g2d.fill(shapeFactory(currentShape, g2d, false)); //Uses the factory to determine the current shape to set the fill.
 			g2d.draw(shapeFactory(currentShape, g2d, selectedShapeIndex == i)); //Uses the factory to determine the current shape to draw the image
