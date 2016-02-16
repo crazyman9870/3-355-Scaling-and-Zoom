@@ -3,19 +3,28 @@ package cs355.controller;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Point2D;
 import java.io.File;
 import java.util.Iterator;
 
 import cs355.GUIFunctions;
 import cs355.controller.IControllerState.stateType;
 import cs355.model.drawing.*;
+import cs355.solution.CS355;
 
 public class Controller implements CS355Controller {
 
 	private static Controller _instance;
 	
+	public static final double ZOOMIN = 2.0;
+	public static final double ZOOMOUT = .5;
+	public static final double ZOOMMIN = .25;
+	public static final double ZOOMMAX = 4.0;
+	
 	private double zoom;
-	IControllerState state;
+	private double scrollerSize;
+	private Point2D.Double viewUpperLeft;
+	private IControllerState state;
 
 	//If the model had not been initialized, it will be.
 	public static Controller instance() {
@@ -26,19 +35,14 @@ public class Controller implements CS355Controller {
 	
 	private Controller() {
 		this.zoom = 1.0;
+		this.scrollerSize = 512;
+		this.viewUpperLeft = new Point2D.Double(0,0);
 		this.state = new ControllerNothingState();
+		
 	}
 	
 	public double calculateCenterTriangle(double coord1, double coord2, double coord3) {
 		return ((coord1 + coord2 + coord3) / 3);
-	}
-
-	public double getZoom() {
-		return zoom;
-	}
-
-	public void setZoom(double zoom) {
-		this.zoom = zoom;
 	}
 	
 	/* Mouse Events */
@@ -133,20 +137,48 @@ public class Controller implements CS355Controller {
 
 	@Override
 	public void zoomInButtonHit() {
-		if(zoom < 4.0) {
-			zoom = zoom * 2;
-			GUIFunctions.setZoomText(zoom);
-			GUIFunctions.refresh();
-		}
+//		if(zoom >= ZOOMMAX)
+//			return;
+//		zoom *= ZOOMIN;
+//		scrollerSize = CS355.SCROLLSTART/zoom;
+//		refreshScroll();
+		this.setZoom(ZOOMIN);
 	}
 
 	@Override
 	public void zoomOutButtonHit() {
-		if(zoom > 0.25) {
-			zoom = zoom/2;
-			GUIFunctions.setZoomText(zoom);
-			GUIFunctions.refresh();
-		}
+//		if(zoom <= ZOOMMIN)
+//			return;
+//		zoom *= ZOOMOUT;
+//		scrollerSize = CS355.SCROLLSTART/zoom;
+//		refreshScroll();
+		this.setZoom(ZOOMOUT);
+	}
+	
+	@Override
+	public void hScrollbarChanged(int value) {
+//		viewUpperLeft.x += value;
+//		Model.instance().changeMade();
+		viewUpperLeft.x = value;
+//		GUIFunctions.refresh();
+	}
+
+	@Override
+	public void vScrollbarChanged(int value) {
+//		viewUpperLeft.x += value;
+//		Model.instance().changeMade();
+		viewUpperLeft.y = value;
+//		GUIFunctions.refresh();
+	}
+	
+	private void refreshScroll() {
+		GUIFunctions.setHScrollBarPosit((int)viewUpperLeft.getX());
+		GUIFunctions.setVScrollBarPosit((int)viewUpperLeft.getY());
+		
+		GUIFunctions.setHScrollBarKnob((int)scrollerSize);
+        GUIFunctions.setVScrollBarKnob((int)scrollerSize);
+        
+		Model.instance().changeMade();
 	}
 	
 	/* Menu Buttons */
@@ -225,18 +257,6 @@ public class Controller implements CS355Controller {
 	}
 	
 	/* Implement Later */
-	
-	@Override
-	public void hScrollbarChanged(int value) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void vScrollbarChanged(int value) {
-		// TODO Auto-generated method stub
-
-	}
 
 	@Override
 	public void openScene(File file) {
@@ -370,5 +390,59 @@ public class Controller implements CS355Controller {
 		// View to world
         transform.concatenate(viewToWorld());
 		return transform;
+	}
+	
+	/* Zoom Adjustment */
+	public double getZoom() {
+		return zoom;
+	}
+	
+	private void setZoom(double value){
+
+		// find screen width before zoom changes
+		int prevWidth = (int) (CS355.SCROLLSTART/zoom);
+		//Take view top left and convert to world coordinates
+//		Point2D.Double viewTopLeft = new Point2D.Double(0, 0);
+		Point2D.Double viewCenter = new Point2D.Double(viewUpperLeft.x + prevWidth/2, viewUpperLeft.y + prevWidth/2);
+//		AffineTransform viewToWorld = Controller.instance().viewToWorld();
+//		AffineTransform worldToView = Controller.instance().worldToView();
+//		viewToWorld.transform(viewTopLeft, viewTopLeft);
+//		viewToWorld.transform(viewCenter, viewCenter);
+//		
+		// change zoom level
+		zoom *= value;
+
+		// check for zoom max / zoom min cases
+		if(zoom < ZOOMMIN) zoom = ZOOMMIN;
+		if(zoom > ZOOMMAX) zoom = ZOOMMAX;
+
+		// find screen width after zoom changes
+		int width = (int) (CS355.SCROLLSTART/zoom);
+
+		// find new viewport coordinates (relative to world coordinates)
+		Point2D.Double newViewport = new Point2D.Double(viewCenter.x - width/2, viewCenter.y - width/2);
+
+		// check if viewport gives you negative coordinates
+		// screen_size = 1024
+		if(newViewport.x < 0) newViewport.x = 0;
+		if(newViewport.y < 0) newViewport.y = 0;
+		if(newViewport.x + width > CS355.SCREENSIZE) newViewport.x = CS355.SCREENSIZE - width;
+		if(newViewport.y + width > CS355.SCREENSIZE) newViewport.y = CS355.SCREENSIZE - width;
+
+		
+		
+		if(prevWidth == CS355.SCREENSIZE){
+			GUIFunctions.setHScrollBarKnob(width);
+			GUIFunctions.setVScrollBarKnob(width);
+		}
+
+		GUIFunctions.setHScrollBarPosit((int)newViewport.x);
+		GUIFunctions.setVScrollBarPosit((int)newViewport.y);
+
+		GUIFunctions.setHScrollBarKnob(width);
+		GUIFunctions.setVScrollBarKnob(width);
+
+		GUIFunctions.setZoomText(zoom);
+		GUIFunctions.refresh();
 	}
 }

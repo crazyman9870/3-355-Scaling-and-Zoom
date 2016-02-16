@@ -14,9 +14,9 @@ import cs355.view.View;
  */
 public class CS355 {
 
-	public static final int SCREEN_SIZE = 2048;
-	public static final int SCROLL_START = 512;
-	public static final int STARTING_POSITION = 1024 - SCROLL_START/2;
+	public static final int SCREENSIZE = 2048;
+	public static final int SCROLLSTART = 512;
+	public static final int STARTINGPOSITION = 1024 - SCROLLSTART/2;
 	/**
 	 * This is where it starts.
 	 * @param args = the command line arguments
@@ -30,14 +30,14 @@ public class CS355 {
 		GUIFunctions.createCS355Frame(controller, view);
 		GUIFunctions.changeSelectedColor(Color.WHITE);
 
-		GUIFunctions.setHScrollBarMax(SCREEN_SIZE);
-		GUIFunctions.setVScrollBarMax(SCREEN_SIZE);
+		GUIFunctions.setHScrollBarMax(SCREENSIZE);
+		GUIFunctions.setVScrollBarMax(SCREENSIZE);
 
-		GUIFunctions.setVScrollBarPosit(STARTING_POSITION);
-		GUIFunctions.setHScrollBarPosit(STARTING_POSITION);
+		GUIFunctions.setVScrollBarPosit(STARTINGPOSITION);
+		GUIFunctions.setHScrollBarPosit(STARTINGPOSITION);
 
-		GUIFunctions.setHScrollBarKnob(SCROLL_START);
-		GUIFunctions.setVScrollBarKnob(SCROLL_START);
+		GUIFunctions.setHScrollBarKnob(SCROLLSTART);
+		GUIFunctions.setVScrollBarKnob(SCROLLSTART);
 		
 		GUIFunctions.refresh();
 	}
