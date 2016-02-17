@@ -1,7 +1,10 @@
 package cs355.model.drawing;
 
 import java.awt.Color;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+
+import cs355.controller.Controller;
 
 /**
  * Add your line code here. You can add fields, but you cannot
@@ -54,12 +57,18 @@ public class Line extends Shape {
 	 */
 	@Override
 	public boolean pointInShape(Point2D.Double pt, double tolerance) {
+		AffineTransform worldToView = Controller.instance().worldToView();
+		Point2D.Double centerView = new Point2D.Double(center.getX(), center.getY());
+		Point2D.Double endView = new Point2D.Double(end.getX(), end.getY());
+		worldToView.transform(centerView, centerView);
+		worldToView.transform(endView, endView);
+		
 		double x0 = pt.getX();
 		double y0 = pt.getY();
-		double x1 = center.getX();
-		double y1 = center.getY();
-		double x2 = end.getX();
-		double y2 = end.getY();
+		double x1 = centerView.getX();
+		double y1 = centerView.getY();
+		double x2 = endView.getX();
+		double y2 = endView.getY();
 		
 		double slope = (y1-y2)/(x2-x1);
 		double tangentSlope = -1/slope;
@@ -68,6 +77,7 @@ public class Line extends Shape {
 		y0 += Math.sin(degree);
 		x0 += Math.cos(degree);
 		
+//		double zoom = Controller.instance().getZoom();
 		if(x0 <= (Math.max(x1, x2)+tolerance) && x0 >= (Math.min(x1, x2)-tolerance)
 				&& y0 <= (Math.max(y1, y2)+tolerance) && y0 >= (Math.min(y1, y2)-tolerance)) {
 //			System.out.println("Line Selected");

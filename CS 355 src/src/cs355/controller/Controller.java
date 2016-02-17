@@ -98,36 +98,42 @@ public class Controller implements CS355Controller {
 
 	@Override
 	public void lineButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.LINE);
 		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void squareButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.SQUARE);
 		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void rectangleButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.RECTANGLE);
 		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void circleButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.CIRCLE);
 		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void ellipseButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.ELLIPSE);
 		this.state = new ControllerDrawingState();
 	}
 
 	@Override
 	public void triangleButtonHit() {
+		Model.instance().setSelectedShapeIndex(-1);
 		Model.instance().setCurrentShape(Shape.type.TRIANGLE);
 		this.state = new ControllerDrawingState();
 	}
@@ -382,16 +388,26 @@ public class Controller implements CS355Controller {
 	public Point2D.Double viewPointToWorldPoint(Point2D.Double point) {
 		Point2D.Double pointCopy = new Point2D.Double(point.getX(), point.getY());
 		AffineTransform transform = new AffineTransform();
-		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, viewCenter.getX() - 256*(1/zoom), viewCenter.getY() - 256*(1/zoom))); //t
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -(viewCenter.getX() + 256*(1/zoom)), -(viewCenter.getY() + 256*(1/zoom)))); //t
         transform.concatenate(new AffineTransform(1/zoom, 0, 0, 1/zoom, 0, 0));
-        transform.transform(pointCopy, pointCopy); //transform pt to object coordinates
+        transform.transform(pointCopy, pointCopy);
         return pointCopy;
-	}	
+	}
+	
+	public Point2D.Double worldPointToViewPoint(Point2D.Double point)
+	{
+		Point2D.Double pointCopy = new Point2D.Double(point.getX(), point.getY());
+		AffineTransform transform = new AffineTransform();
+		transform.concatenate(new AffineTransform(zoom, 0, 0, zoom, 0, 0)); //scale
+		transform.concatenate(new AffineTransform(1.0, 0, 0, 1.0, -viewCenter.getX() + 256*(1/zoom), -viewCenter.getY() + 256*(1/zoom))); //t
+        transform.transform(pointCopy, pointCopy);
+        return pointCopy;
+	}
 	
 	public Point2D.Double objectPointToViewPoint(Shape shape, Point2D.Double point) {
 		Point2D.Double pointCopy = new Point2D.Double(point.getX(), point.getY());
 		AffineTransform transform = objectToView(shape);
-        transform.transform(pointCopy, pointCopy); //transform pt to object coordinates
+        transform.transform(pointCopy, pointCopy);
         return pointCopy;
 	}
 	

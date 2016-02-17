@@ -70,11 +70,11 @@ public class Model extends CS355Drawing {
 				AffineTransform viewToObject = Controller.instance().viewToObject(s);
 				viewToObject.transform(ptCopy, ptCopy);
 			}
-			else {
-				// changes the coordinates from view->world
-				AffineTransform viewToWorld = Controller.instance().viewToWorld();
-				viewToWorld.transform(ptCopy, ptCopy);
-			}
+//			else {
+				//changes the coordinates from view->world
+//				AffineTransform viewToWorld = Controller.instance().viewToWorld();
+//				viewToWorld.transform(ptCopy, ptCopy);
+//			}
 			if(s.pointInShape(ptCopy, tolerance)) {
 				selectedShapeIndex = i;
 				selectedColor = s.getColor();
@@ -86,75 +86,6 @@ public class Model extends CS355Drawing {
 		selectedShapeIndex = -1;
 		changeMade();
 		return selectedShapeIndex;
-	}
-	
-	public boolean mousePressedInRotationHandle(Point2D.Double pt, double tolerance)
-	{
-		if(selectedShapeIndex == -1)
-			return false;
-		
-		Shape shape = shapes.get(selectedShapeIndex);
-		double height = -1;
-		switch(shape.getShapeType())
-		{
-			case ELLIPSE:
-				height = ((Ellipse)shape).getHeight();
-				break;
-			case RECTANGLE:
-				height = ((Rectangle)shape).getHeight();
-				break;
-			case CIRCLE:
-				height = 2*((Circle)shape).getRadius();
-				break;
-			case SQUARE:
-				height = ((Square)shape).getSize();
-				break;
-			default:
-				break;
-		}
-		if(height!=-1)
-		{
-			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
-			// changes the coordinates from view->world->object
-			AffineTransform viewToObj = Controller.instance().viewToObject(shape);
-			viewToObj.transform(ptCopy, ptCopy);
-			double yDiff = ptCopy.getY()+((height/2) + 9);
-			
-			double distance = Math.sqrt(Math.pow(ptCopy.getX(), 2) + Math.pow(yDiff, 2));
-			return (6>=distance);
-		}
-		if(shape.getShapeType().equals(Shape.type.TRIANGLE))
-		{
-			Point2D.Double ptCopy = new Point2D.Double(pt.getX(), pt.getY());
-			// changes the coordinates from view->world->object
-			AffineTransform viewToObj = Controller.instance().viewToObject(shape);
-			viewToObj.transform(ptCopy, ptCopy); //transform pt to object coordinates
-			
-			Triangle triangle = (Triangle)shape;
-			double ax = triangle.getA().getX()-triangle.getCenter().getX();
-			double bx = triangle.getB().getX()-triangle.getCenter().getX();
-			double cx = triangle.getC().getX()-triangle.getCenter().getX();
-			
-			double ay = triangle.getA().getY()-triangle.getCenter().getY();
-			double by = triangle.getB().getY()-triangle.getCenter().getY();
-			double cy = triangle.getC().getY()-triangle.getCenter().getY();
-			
-			double distance = 7;
-			if(ay <= by && ay <= cy)
-			{
-				distance = Math.sqrt(Math.pow(ax-ptCopy.getX(), 2) + Math.pow(ay-ptCopy.getY()-9, 2));
-			}
-			else if(by <= ay && by <= cy)
-			{
-				distance = Math.sqrt(Math.pow(bx-ptCopy.getX(), 2) + Math.pow(by-ptCopy.getY()-9, 2));
-			}
-			else if(cy <= by && cy <= ay)
-			{
-				distance = Math.sqrt(Math.pow(cx-ptCopy.getX(), 2) + Math.pow(cy-ptCopy.getY()-9, 2));
-			}
-			return (6>=distance); 
-		}
-		return false;
 	}
 	
 	@Override
